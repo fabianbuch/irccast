@@ -19,7 +19,7 @@ opt['yaml'] ||= File.dirname(__FILE__) + '/config.yaml'
 if File.exists?(opt['yaml'])
   options = File.open(opt['yaml']) {|f| YAML::load(f)}
   if File.exists?(File.dirname(__FILE__) + '/twitter.yaml')
-    options.merge File.open(File.dirname(__FILE__) + '/twitter.yaml') {|f| YAML::load(f)}
+    options.merge! File.open(File.dirname(__FILE__) + '/twitter.yaml') {|f| YAML::load(f)}
   end
 end
 
