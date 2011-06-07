@@ -1,35 +1,46 @@
 require 'net/yail/irc_bot'
 require 'date'
+require 'twitter'
 
 class CastBot < IRCBot
   BOTNAME = 'IrcCast'
   BOTVERSION = 'v0.1.0'
+  POLL_INTERVAL = 60
 
   def initialize(options = {})
     @master       = options.delete(:master)
-    @output_dir   = options.delete(:output_dir) || File.dirname(__FILE__)
-
-    # Log files per channel - logs rotate every so often, so we have to store
-    # filenames on a per-channel basis
-    @current_log  = {}
-    @log_date     = {}
     @passwords    = options[:passwords] || {}
 
     options[:username] = BOTNAME
     options[:realname] = BOTNAME
     options[:nicknames] = ['SynyxCast', 'Cast_Bot']
 
+    Twitter.configure do |config|
+      config.consumer_key = options.delete("consumer_key")
+      config.consumer_secret = options.delete("consumer_secret")
+      config.oauth_token = options.delete("oauth_token")
+      config.oauth_token_secret = options.delete("oauth_token_secret")
+    end
+
+    @client = Twitter::Client.new
+
     # Set up IRCBot, our loving parent, and begin
     super(options)
     self.connect_socket
     self.start_listening
+
+    # join default channels
+    @channels = ['#synyxcast']
+    @channels.each do |channel|
+      join channel
+    end
+
   end
 
   # Add hooks on startup (base class's start method calls add_custom_handlers)
   def add_custom_handlers
     # Set up hooks
     @irc.prepend_handler(:incoming_msg,             self.method(:_in_msg))
-    @irc.prepend_handler(:incoming_act,             self.method(:_in_act))
     @irc.prepend_handler(:incoming_invite,          self.method(:_in_invited))
     @irc.prepend_handler(:incoming_kick,            self.method(:_in_kick))
 
@@ -96,6 +107,55 @@ class CastBot < IRCBot
   def _out_join(target, pass)
     key = @passwords[target]
     pass.replace(key) unless key.to_s.empty?
+    
+    twitter_timeline
+  end
+
+  def twitter_timeline
+    Thread.new do
+      loop do
+        begin
+          poll_twitter_timeline.each do |tweet|
+            tweet_id = tweet.id.to_i
+            if tweet_id > @last_id
+              @last_id = tweet_id
+              @channels.each do |channel|
+                msg(channel, "[@\00300#{tweet.user.screen_name}\003] #{tweet.text}")
+              end
+            end
+          end
+        rescue Exception => e
+          $stderr.puts "Exception in thread: #{e.class}: #{e}"
+          $stderr.puts e.backtrace.join( "\n\t" )
+        end
+        sleep POLL_INTERVAL
+      end
+    end
+  end
+
+  def poll_twitter_timeline
+    tweets_to_broadcast = []
+    
+    report ["polling tweets"]
+    
+    opts = @last_id ? { :since_id => @last_id } : {}
+    tl = @client.home_timeline(opts)
+    
+    # the first time just save the last tweet id without broadcasting it
+    if tl.any?
+      if @last_id.nil?
+        @last_id = tl[0].id.to_i
+      else
+        tl.reverse_each do |tweet|
+          tweets_to_broadcast << tweet
+        end
+      end
+    end
+    
+    return tweets_to_broadcast
+  rescue Exception => e
+    $stderr.puts "Twitter exception: #{e.message}"
+    return []
   end
 
 end
