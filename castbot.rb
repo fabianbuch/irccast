@@ -16,10 +16,10 @@ class CastBot < IRCBot
     options[:nicknames] = ['SynyxCast', 'Cast_Bot']
 
     Twitter.configure do |config|
-      config.consumer_key = options.delete("consumer_key")
-      config.consumer_secret = options.delete("consumer_secret")
-      config.oauth_token = options.delete("oauth_token")
-      config.oauth_token_secret = options.delete("oauth_token_secret")
+      config.consumer_key = options.delete(:consumer_key)
+      config.consumer_secret = options.delete(:consumer_secret)
+      config.oauth_token = options.delete(:oauth_token)
+      config.oauth_token_secret = options.delete(:oauth_token_secret)
     end
 
     @client = Twitter::Client.new

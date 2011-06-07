@@ -12,14 +12,15 @@ opt = Getopt::Long.getopts(
   ['--yaml',        '-y', Getopt::OPTIONAL]
 )
 
+
+options = {}
+
 opt['yaml'] ||= File.dirname(__FILE__) + '/config.yaml'
 if File.exists?(opt['yaml'])
   options = File.open(opt['yaml']) {|f| YAML::load(f)}
   if File.exists?(File.dirname(__FILE__) + '/twitter.yaml')
-    options = File.open(File.dirname(__FILE__) + '/twitter.yaml') {|f| YAML::load(f)}
+    options.merge File.open(File.dirname(__FILE__) + '/twitter.yaml') {|f| YAML::load(f)}
   end
-else
-  options = {}
 end
 
 for key in %w{network master passwords}
@@ -29,6 +30,10 @@ end
 @bot = CastBot.new(
   :irc_network  => options['network'],
   :master       => options['master'],
-  :passwords    => options['passwords']
+  :passwords    => options['passwords'],
+  :consumer_key => options["consumer_key"],
+  :consumer_secret => options["consumer_secret"],
+  :oauth_token => options["oauth_token"],
+  :oauth_token_secret => options["oauth_token_secret"]
 )
 @bot.irc_loop
