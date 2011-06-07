@@ -1,0 +1,4 @@
+network: irc.freenode.net
+master: fabian
+passwords:
+  "#synyxcast": ""
