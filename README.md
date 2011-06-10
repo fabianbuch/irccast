@@ -1,6 +1,22 @@
 IrcCast ist an irc bot that broadcasts the homeline of a twitter account to irc channels.
 
-License:
+# Installation
+
+  gem install twitter
+  gem install net-yaim
+
+create a twitter.yaml file with the following data:
+
+  consumer_key: 
+  consumer_secret: 
+  oauth_token: 
+  oauth_token_secret: 
+
+start via
+
+  ruby run.rb
+
+# License
 
 The MIT License (MIT)
 Copyright (c) 2011 Fabian Buch
