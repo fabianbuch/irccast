@@ -1,7 +1,6 @@
 #!/usr/bin/env ruby
 
 require 'rubygems'
-require 'twitter_oauth'
 require 'net/yail'
 require 'getopt/long'
 require 'castbot'
