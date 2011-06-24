@@ -8,12 +8,12 @@ class CastBot < IRCBot
   POLL_INTERVAL = 60
 
   def initialize(options = {})
-    @master       = options.delete(:master)
-    @passwords    = options[:passwords] || {}
+    @master = options.delete(:master)
+    @channels = options[:channels] || {}
 
     options[:username] = BOTNAME
     options[:realname] = BOTNAME
-    options[:nicknames] = ['SynyxCast', 'Cast_Bot']
+    options[:nicknames] = options[:nicknames] || ['irccast', 'castbot']
 
     Twitter.configure do |config|
       config.consumer_key = options.delete(:consumer_key)
@@ -29,22 +29,18 @@ class CastBot < IRCBot
     self.connect_socket
     self.start_listening
 
-    # join default channels
-    @channels = ['#synyxcast']
-    @channels.each do |channel|
-      join channel
-    end
-
   end
 
   # Add hooks on startup (base class's start method calls add_custom_handlers)
   def add_custom_handlers
     # Set up hooks
-    @irc.prepend_handler(:incoming_msg,             self.method(:_in_msg))
-    @irc.prepend_handler(:incoming_invite,          self.method(:_in_invited))
-    @irc.prepend_handler(:incoming_kick,            self.method(:_in_kick))
+    @irc.prepend_handler(:incoming_msg, self.method(:_in_msg))
+    @irc.prepend_handler(:incoming_invite, self.method(:_in_invited))
+    @irc.prepend_handler(:incoming_kick, self.method(:_in_kick))
 
-    @irc.prepend_handler(:outgoing_join,            self.method(:_out_join))
+    @irc.prepend_handler(:outgoing_join, self.method(:_out_join))
+
+    @irc.prepend_handler(:incoming_welcome, self.method(:twitter_timeline))
   end
 
   private
@@ -105,13 +101,11 @@ class CastBot < IRCBot
 
   # We're trying to join a channel - use key if we have one
   def _out_join(target, pass)
-    key = @passwords[target]
+    key = @channels[target]
     pass.replace(key) unless key.to_s.empty?
-    
-    twitter_timeline
   end
 
-  def twitter_timeline
+  def twitter_timeline(text, args)
     Thread.new do
       loop do
         begin

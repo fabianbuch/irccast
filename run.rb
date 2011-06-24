@@ -22,14 +22,15 @@ if File.exists?(opt['yaml'])
   end
 end
 
-for key in %w{network master passwords}
-  options[key] ||= opt[key]
+for key in %w{network master}
+  options[key] = opt[key] if opt[key]
 end
 
 @bot = CastBot.new(
   :irc_network  => options['network'],
   :master       => options['master'],
-  :passwords    => options['passwords'],
+  :channels    => options['channels'],
+  :nicknames    => options['nicknames'],
   :consumer_key => options["consumer_key"],
   :consumer_secret => options["consumer_secret"],
   :oauth_token => options["oauth_token"],

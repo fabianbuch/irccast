@@ -1,4 +1,9 @@
 network: irc.synyx.de
 master: Fabian
-passwords:
-  "#synyxcast": ""
+channels:
+  "#synyxcast" : ""
+  "#synyx" : ""
+nicknames:
+  - "Castie"
+  - "SynyxCast"
+  - "castbot"
