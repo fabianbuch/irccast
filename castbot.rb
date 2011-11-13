@@ -118,7 +118,7 @@ class CastBot < IRCBot
             if tweet_id > @last_id
               @last_id = tweet_id
               @channels.each do |channel|
-                msg(channel, "[@\00303#{tweet.user.screen_name}\003] #{tweet.text}")
+                msg(channel, "[@\00303#{tweet.user.screen_name}\003] #{tweettext}")
               end
             end
           end
