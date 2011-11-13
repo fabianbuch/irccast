@@ -113,7 +113,7 @@ class CastBot < IRCBot
             tweet_id = tweet.id.to_i
             
             # multiple line tweets in one line
-            tweettext = tweet.text.split("\n").each {|el| el.strip! }.join(" ")
+            tweettext = tweet.text.split(/\s+/).each {|el| el.strip! }.join(" ")
             
             if tweet_id > @last_id
               @last_id = tweet_id
